@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ajio vs Myntra — Review Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--ajio:#FF3B58;--myntra:#9B5DE5;--bg:#0B0C10;--surface:#13151A;--surface2:#1C1F28;--border:#2A2D38;--text:#E8EAF0;--muted:#7A7F94;--pos:#22C55E;--neg:#EF4444;--neu:#F59E0B;--android:#3DDC84;--ios:#007AFF;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden;}
+header{padding:32px 48px 28px;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(24px,3.5vw,46px);letter-spacing:-1px;line-height:1;}
+h1 .a{color:var(--ajio);}h1 .vs{color:var(--muted);font-weight:400;font-size:0.55em;margin:0 6px;}h1 .m{color:var(--myntra);}
+.hsub{color:var(--muted);font-size:12px;margin-top:6px;}
+.pbadges{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.pb{font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;letter-spacing:0.5px;}
+.pb-a{background:#3DDC8420;color:var(--android);border:1px solid #3DDC8440;}
+.pb-i{background:#007AFF20;color:var(--ios);border:1px solid #007AFF40;}
+.pb-s{background:#F59E0B20;color:var(--neu);border:1px solid #F59E0B40;}
+.hright{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.mpill{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--muted);text-align:center;}
+.mpill strong{display:block;font-size:18px;font-family:'Syne',sans-serif;font-weight:700;color:var(--text);}
+.rbtn{background:linear-gradient(135deg,var(--ajio),var(--myntra));border:none;border-radius:8px;padding:10px 20px;color:white;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.rbtn:hover{opacity:0.85;}
+@keyframes spin{to{transform:rotate(360deg);}}.spin{display:inline-block;animation:spin 1s linear infinite;}
+.platbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 48px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.platbar label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.platbtn{background:transparent;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s;}
+.platbtn:not(.active){color:var(--muted);}
+.platbtn.all.active{background:var(--surface2);color:var(--text);border-color:var(--text);}
+.platbtn.android.active{background:#3DDC8418;color:var(--android);border-color:var(--android);}
+.platbtn.ios.active{background:#007AFF18;color:var(--ios);border-color:var(--ios);}
+.datebar{background:var(--surface2);border-bottom:1px solid var(--border);padding:14px 48px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.datebar label{font-size:11px;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;}
+.dinput{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:7px 12px;color:var(--text);font-size:13px;cursor:pointer;outline:none;font-family:'DM Sans',sans-serif;}
+.dinput:focus{border-color:var(--myntra);}
+.dinput::-webkit-calendar-picker-indicator{filter:invert(0.7);}
+.abtn{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:7px 16px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.abtn:hover{background:var(--border);}
+.qbtns{display:flex;gap:6px;}
+.qbtn{background:transparent;border:1px solid var(--border);border-radius:6px;padding:6px 12px;color:var(--muted);font-size:11px;cursor:pointer;}
+.qbtn:hover,.qbtn.active{background:var(--surface);color:var(--text);border-color:var(--text);}
+.dcnt{font-size:12px;color:var(--muted);margin-left:auto;}
+.dcnt span{color:var(--text);font-weight:500;}
+.tabs{display:flex;gap:0;padding:0 48px;border-bottom:1px solid var(--border);overflow-x:auto;}
+.tbtn{padding:16px 18px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.5px;transition:all 0.2s;margin-bottom:-1px;white-space:nowrap;}
+.tbtn:hover{color:var(--text);}
+.tbtn.active{color:var(--text);border-bottom-color:var(--text);}
+.tpanel{display:none;}.tpanel.active{display:block;}
+.con{padding:36px 48px 56px;}
+.sl{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.sl::after{content:'';flex:1;height:1px;background:var(--border);}
+.kg{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;margin-bottom:36px;}
+.kc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;position:relative;overflow:hidden;}
+.kc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kc.ajio::before{background:var(--ajio);}
+.kc.myntra::before{background:var(--myntra);}
+.kl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.kv{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;line-height:1;}
+.kc.ajio .kv{color:var(--ajio);}
+.kc.myntra .kv{color:var(--myntra);}
+.ks{font-size:11px;color:var(--muted);margin-top:3px;}
+.kps{display:flex;gap:8px;margin-top:6px;}
+.kps span{font-size:10px;padding:2px 6px;border-radius:10px;}
+.kpa{background:#3DDC8415;color:var(--android);}
+.kpi2{background:#007AFF15;color:var(--ios);}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px;}
+.cc.wide{grid-column:1/-1;}
+.ct{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px;}
+.cs{font-size:11px;color:var(--muted);margin-bottom:18px;}
+canvas{max-height:280px;}
+.tc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px;margin-bottom:24px;}
+.sentcmp{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px;}
+.sbrand{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;margin-bottom:18px;}
+.sbrg{margin-bottom:12px;}
+.sbrl{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px;}
+.sbrt{background:var(--surface2);border-radius:4px;height:7px;overflow:hidden;}
+.sbrf{height:100%;border-radius:4px;width:0;transition:width 1.2s cubic-bezier(0.16,1,0.3,1);}
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{text-align:left;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0 14px 10px;border-bottom:1px solid var(--border);}
+thead th:first-child{padding-left:0;}
+tbody tr{border-bottom:1px solid var(--border);}
+tbody tr:hover{background:var(--surface2);}
+tbody tr:last-child{border-bottom:none;}
+tbody td{padding:12px 14px;vertical-align:middle;}
+tbody td:first-child{padding-left:0;font-weight:500;}
+.mbt{background:var(--surface2);border-radius:3px;height:5px;width:70px;display:inline-block;vertical-align:middle;margin-right:7px;}
+.mbf{height:100%;border-radius:3px;}
+.bdg{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500;}
+.bdg.pos{background:#22C55E18;color:var(--pos);}
+.bdg.neg{background:#EF444418;color:var(--neg);}
+.bdg.neu{background:#F59E0B18;color:var(--neu);}
+.srcb{display:inline-block;font-size:9px;font-weight:600;padding:1px 5px;border-radius:8px;margin-left:4px;}
+.srca{background:#3DDC8420;color:var(--android);}
+.srci{background:#007AFF20;color:var(--ios);}
+/* Reviews */
+.rbsec{margin-bottom:40px;}
+.rbhdr{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;padding-bottom:12px;border-bottom:2px solid;margin-bottom:20px;}
+.rbhdr.ajio{color:var(--ajio);border-color:var(--ajio);}
+.rbhdr.myntra{color:var(--myntra);border-color:var(--myntra);}
+.rcatsec{margin-bottom:6px;}
+.rcatlbl{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:12px 0;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border);}
+.rcatarr{font-size:10px;color:var(--muted);}
+.rcatarr.open{color:var(--text);}
+.rcatcnt{font-size:11px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1px 8px;}
+.rcatsm{display:flex;gap:6px;margin-left:auto;font-size:10px;}
+.rcatsp{padding:2px 6px;border-radius:10px;background:#22C55E18;color:var(--pos);}
+.rcatsn{padding:2px 6px;border-radius:10px;background:#EF444418;color:var(--neg);}
+.rcatbody{display:none;padding:16px 0 10px;}
+.rcatbody.open{display:block;}
+.rtcol{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.rcolhd{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.rchpos{color:var(--pos);}
+.rchneg{color:var(--neg);}
+.rvc{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;border-left:3px solid transparent;}
+.rvc.pos{border-left-color:var(--pos);}
+.rvc.neg{border-left-color:var(--neg);}
+.rvct{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.rvcs{color:#FBBF24;font-size:11px;}
+.rvcx{font-size:12px;line-height:1.6;color:#B0B5C8;}
+.rvcf{display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:4px;}
+.rvcd{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;}
+/* Deep Dive */
+.ddbrand{margin-bottom:40px;}
+.ddbhdr{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;padding-bottom:12px;border-bottom:2px solid;margin-bottom:20px;}
+.ddbhdr.ajio{color:var(--ajio);border-color:var(--ajio);}
+.ddbhdr.myntra{color:var(--myntra);border-color:var(--myntra);}
+.ddmc{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden;}
+.ddmhdr{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.ddmhdr:hover{background:var(--surface2);}
+.ddmtitle{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
+.ddmeta{display:flex;align-items:center;gap:12px;}
+.ddtot{font-family:'DM Mono',monospace;font-size:11px;background:var(--neg);color:white;border-radius:12px;padding:2px 10px;}
+.ddarr{font-size:11px;color:var(--muted);transition:transform 0.2s;}
+.ddarr.open{transform:rotate(90deg);}
+.ddbody{display:none;padding:0 20px 16px;}
+.ddbody.open{display:block;}
+.ddrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.ddrow:last-child{border-bottom:none;}
+.ddscname{font-size:13px;font-weight:500;min-width:230px;}
+.ddbwrap{flex:1;display:flex;align-items:center;gap:10px;}
+.ddbtrack{background:var(--surface2);border-radius:4px;height:8px;flex:1;overflow:hidden;}
+.ddbfill{height:100%;border-radius:4px;background:var(--neg);transition:width 0.8s cubic-bezier(0.16,1,0.3,1);width:0;}
+.ddcnt{font-family:'DM Mono',monospace;font-size:12px;color:var(--neg);min-width:36px;text-align:right;}
+.ddsbtn{font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;white-space:nowrap;}
+.ddsbtn:hover{color:var(--text);border-color:var(--text);}
+.ddsp{display:none;margin-top:8px;padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);}
+.ddsp.open{display:block;}
+.ddsc{padding:10px 12px;margin-bottom:8px;background:var(--surface2);border-radius:6px;border-left:3px solid var(--neg);}
+.ddsc:last-child{margin-bottom:0;}
+.ddstxt{font-size:12px;line-height:1.6;color:#B0B5C8;}
+.ddsmeta{display:flex;gap:8px;margin-top:6px;align-items:center;flex-wrap:wrap;}
+.ddsdate{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px;}
+.ic{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px;}
+.ic h4{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.ii{display:flex;align-items:flex-start;gap:9px;margin-bottom:9px;font-size:12px;line-height:1.55;color:#B0B5C8;}
+.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.dr{background:var(--neg);}.dg{background:var(--pos);}.dy{background:var(--neu);}
+@media(max-width:768px){
+  header,.platbar,.datebar,.con,.tabs{padding-left:20px;padding-right:20px;}
+  .cg,.sentcmp,.ig{grid-template-columns:1fr;}
+  .cc.wide{grid-column:auto;}
+  .rtcol{grid-template-columns:1fr;}
+}
+
+#pw-overlay{position:fixed;inset:0;background:#0B0C10;z-index:9999;display:flex;align-items:center;justify-content:center;}
+.pw-box{background:#13151A;border:1px solid #2A2D38;border-radius:16px;padding:48px 40px;width:340px;text-align:center;}
+.pw-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;letter-spacing:-1px;margin-bottom:6px;}
+.pw-logo .a{color:#FF3B58;}.pw-logo .vs{color:#7A7F94;font-size:0.55em;margin:0 5px;}.pw-logo .m{color:#9B5DE5;}
+.pw-sub{font-size:12px;color:#7A7F94;margin-bottom:32px;}
+.pw-label{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#7A7F94;text-align:left;display:block;margin-bottom:8px;}
+.pw-input{width:100%;background:#1C1F28;border:1px solid #2A2D38;border-radius:8px;padding:12px 16px;color:#E8EAF0;font-size:15px;font-family:'DM Sans',sans-serif;outline:none;letter-spacing:2px;transition:border-color 0.2s;}
+.pw-input:focus{border-color:#9B5DE5;}
+.pw-input.error{border-color:#EF4444;animation:shake 0.3s ease;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pw-btn{margin-top:16px;width:100%;background:linear-gradient(135deg,#FF3B58,#9B5DE5);border:none;border-radius:8px;padding:13px;color:white;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:opacity 0.2s;}
+.pw-btn:hover{opacity:0.88;}
+.pw-err{font-size:12px;color:#EF4444;margin-top:10px;height:16px;}
+
+</style>
+</head>
+<body>
+
+<div id="pw-overlay">
+  <div class="pw-box">
+    <div class="pw-logo"><span class="a">AJIO</span><span class="vs">vs</span><span class="m">MYNTRA</span></div>
+    <p class="pw-sub">Review Analytics Dashboard &middot; Restricted Access</p>
+    <label class="pw-label" for="pw-input">Enter Password</label>
+    <input id="pw-input" class="pw-input" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" onkeydown="if(event.key==='Enter')checkPW()">
+    <button class="pw-btn" onclick="checkPW()">Unlock Dashboard</button>
+    <div class="pw-err" id="pw-err"></div>
+  </div>
+</div>
+<script>
+function checkPW(){
+  const val=document.getElementById('pw-input').value;
+  const inp=document.getElementById('pw-input');
+  const err=document.getElementById('pw-err');
+  // Password: AjioMyntra@2025
+  if(val==='AjioMyntra@2025'){
+    document.getElementById('pw-overlay').style.display='none';
+    inp.value='';
+  } else {
+    inp.classList.add('error');
+    err.textContent='Incorrect password. Please try again.';
+    setTimeout(()=>inp.classList.remove('error'),400);
+    inp.value='';inp.focus();
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>document.getElementById('pw-input').focus());
+</script>
+
+<header>
+  <div>
+    <h1><span class="a">AJIO</span><span class="vs">vs</span><span class="m">MYNTRA</span></h1>
+    <p class="hsub" id="hsub">Android + iOS &middot; Smart Sentiment v2 &middot; Mar 2025 &ndash; Mar 2026</p>
+    <div class="pbadges">
+      <span class="pb pb-a">&#9650; Google Play</span>
+      <span class="pb pb-i">&#63743; App Store</span>
+      <span class="pb pb-s">&#9733; Smart Sentiment v2</span>
+    </div>
+  </div>
+  <div class="hright">
+    <div class="mpill"><strong id="m-tot">-</strong>Reviews</div>
+    <div class="mpill"><strong id="m-and">-</strong>Android</div>
+    <div class="mpill"><strong id="m-ios">-</strong>iOS</div>
+    <div class="mpill"><strong id="m-days">-</strong>Days</div>
+    <div class="mpill"><strong id="m-built" style="font-size:11px;letter-spacing:0;color:var(--neu)">__BUILD_TS__</strong>Last Refresh</div>
+    <button class="rbtn" onclick="refreshData()"><span id="ri">&#8635;</span> Refresh</button>
+  </div>
+</header>
+<div class="platbar">
+  <label>Platform</label>
+  <button class="platbtn all active" onclick="setPlat('all',this)">All Platforms</button>
+  <button class="platbtn android" onclick="setPlat('android',this)">&#9650; Android</button>
+  <button class="platbtn ios" onclick="setPlat('ios',this)">&#63743; iOS</button>
+</div>
+<div class="datebar">
+  <label>From</label><input type="date" class="dinput" id="df">
+  <label>To</label><input type="date" class="dinput" id="dt">
+  <button class="abtn" onclick="applyFilter()">Apply</button>
+  <div class="qbtns">
+    <button class="qbtn" id="qAll" onclick="setQ('all',this)">All</button>
+    <button class="qbtn" onclick="setQ('1d',this)">Today</button>
+    <button class="qbtn" onclick="setQ('3d',this)">3 Days</button>
+    <button class="qbtn" onclick="setQ('7d',this)">7 Days</button>
+    <button class="qbtn" onclick="setQ('30d',this)">30 Days</button>
+  </div>
+  <div class="dcnt" id="dcnt"></div>
+</div>
+<div class="tabs">
+  <button class="tbtn active" onclick="showTab('overview',this)">Overview</button>
+  <button class="tbtn" onclick="showTab('platform',this)">Platform Split</button>
+  <button class="tbtn" onclick="showTab('trend',this)">Daily Trend</button>
+  <button class="tbtn" onclick="showTab('categories',this)">Categories</button>
+  <button class="tbtn" onclick="showTab('sentiment',this)">Sentiment</button>
+  <button class="tbtn" onclick="showTab('reviews',this)">Sample Reviews</button>
+  <button class="tbtn" onclick="showTab('deepdive',this)">&#128270; Deep Dive</button>
+</div>
+<div id="tab-overview" class="tpanel active"><div class="con">
+  <div class="sl">Key Metrics</div><div class="kg" id="kg"></div>
+  <div class="sl">Distribution</div>
+  <div class="cg">
+    <div class="cc"><div class="ct">Rating Distribution &mdash; Ajio</div><div class="cs">Star ratings for period</div><canvas id="aR"></canvas></div>
+    <div class="cc"><div class="ct">Rating Distribution &mdash; Myntra</div><div class="cs">Star ratings for period</div><canvas id="mR"></canvas></div>
+    <div class="cc wide"><div class="ct">Category Volume Comparison</div><div class="cs">Reviews per category &middot; Ajio vs Myntra</div><canvas id="cC" style="max-height:240px"></canvas></div>
+  </div>
+  <div class="ig" id="ig"></div>
+</div></div>
+<div id="tab-platform" class="tpanel"><div class="con">
+  <div class="sl">Android vs iOS &mdash; Ajio</div>
+  <div class="cg">
+    <div class="cc"><div class="ct">Ajio &middot; Avg Rating by Platform</div><canvas id="aP"></canvas></div>
+    <div class="cc"><div class="ct">Ajio &middot; Sentiment by Platform</div><canvas id="aPS"></canvas></div>
+  </div>
+  <div class="sl">Android vs iOS &mdash; Myntra</div>
+  <div class="cg">
+    <div class="cc"><div class="ct">Myntra &middot; Avg Rating by Platform</div><canvas id="mP"></canvas></div>
+    <div class="cc"><div class="ct">Myntra &middot; Sentiment by Platform</div><canvas id="mPS"></canvas></div>
+  </div>
+  <div class="sl">Platform Stats</div>
+  <div class="cc"><div class="tw"><table><thead><tr><th>Brand</th><th>Platform</th><th>Reviews</th><th>Avg &#9733;</th><th>Positive</th><th>Negative</th></tr></thead><tbody id="pt"></tbody></table></div></div>
+</div></div>
+<div id="tab-trend" class="tpanel"><div class="con">
+  <div class="sl">Daily Volume</div>
+  <div class="tc"><div class="ct">Reviews Per Day</div><div class="cs">Total reviews each day</div><canvas id="tV" style="max-height:220px"></canvas></div>
+  <div class="sl">Daily Rating</div>
+  <div class="tc"><div class="ct">Average Star Rating by Day</div><canvas id="tR" style="max-height:200px"></canvas></div>
+  <div class="sl">Daily Sentiment</div>
+  <div class="tc"><div class="ct">Positive vs Negative Per Day</div><canvas id="tS" style="max-height:220px"></canvas></div>
+</div></div>
+<div id="tab-categories" class="tpanel"><div class="con">
+  <div class="sl">Ajio &mdash; Category Breakdown</div>
+  <div class="cc" style="margin-bottom:24px"><div class="tw">
+    <table><thead><tr><th>Category</th><th>Total</th><th>Android</th><th>iOS</th><th>Share</th><th>Positive</th><th>Negative</th><th>Verdict</th></tr></thead>
+    <tbody id="at"></tbody></table></div></div>
+  <div class="sl">Myntra &mdash; Category Breakdown</div>
+  <div class="cc"><div class="tw">
+    <table><thead><tr><th>Category</th><th>Total</th><th>Android</th><th>iOS</th><th>Share</th><th>Positive</th><th>Negative</th><th>Verdict</th></tr></thead>
+    <tbody id="mt"></tbody></table></div></div>
+</div></div>
+<div id="tab-sentiment" class="tpanel"><div class="con">
+  <div class="sl">Overall Sentiment</div><div class="sentcmp" id="sc"></div>
+  <div class="sl">Sentiment by Category</div>
+  <div class="cg">
+    <div class="cc"><div class="ct">Ajio &mdash; Sentiment per Category</div><canvas id="aS"></canvas></div>
+    <div class="cc"><div class="ct">Myntra &mdash; Sentiment per Category</div><canvas id="mS"></canvas></div>
+  </div>
+</div></div>
+<div id="tab-reviews" class="tpanel"><div class="con" id="rcon"></div></div>
+<div id="tab-deepdive" class="tpanel"><div class="con">
+  <div class="sl" style="margin-bottom:8px">Negative Review Deep Dive</div>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:28px">Granular breakdown of negative sentiments only &middot; Click category to expand &middot; Click &ldquo;Show samples&rdquo; to read reviews</p>
+  <div id="ddc"></div>
+</div></div>
+
+<script>
+const A=__AGG__;
+const SD=__SUBCAT__;
+const CI={},gc='rgba(255,255,255,0.05)',tc='#7A7F94';
+Chart.defaults.color=tc;Chart.defaults.borderColor=gc;
+function dc(id){if(CI[id]){CI[id].destroy();delete CI[id];}}
+let PLAT='all';
+
+function allDR(){
+  const mn=Object.keys(A.ajio.by_date).concat(Object.keys(A.myntra.by_date));
+  return{min:mn.reduce((a,b)=>a<b?a:b),max:mn.reduce((a,b)=>a>b?a:b)};
+}
+
+function setPlat(p,btn){
+  PLAT=p;
+  document.querySelectorAll('.platbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');applyFilter(false);
+}
+
+function setQ(r,btn){
+  document.querySelectorAll('.qbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const{min,max}=allDR();const maxD=new Date(max+'T00:00:00');let fromD=new Date(maxD);
+  if(r==='all') fromD=new Date(min+'T00:00:00');
+  else if(r==='3d') fromD.setDate(fromD.getDate()-2);
+  else if(r==='7d') fromD.setDate(fromD.getDate()-6);
+  else if(r==='30d') fromD.setDate(fromD.getDate()-29);
+  document.getElementById('df').value=fromD.toISOString().split('T')[0];
+  document.getElementById('dt').value=max;
+  applyFilter(false);
+}
+
+function applyFilter(rq=true){
+  if(rq)document.querySelectorAll('.qbtn').forEach(b=>b.classList.remove('active'));
+  const from=document.getElementById('df').value,to=document.getElementById('dt').value;
+  renderAll(from,to);
+}
+
+// Filter aggregated by_date and by_cat based on date range + platform
+function filterAgg(brand,from,to){
+  const raw=A[brand];
+  // Filter by_date — compute filtered rat[] from per-day star data
+  const bd={};
+  let tot=0,pos=0,neg=0,neu=0,ac=0,ic=0;
+  const rat=[0,0,0,0,0];
+  for(const[d,v]of Object.entries(raw.by_date)){
+    if(d<from||d>to)continue;
+    const ratio=PLAT==='all'?1:PLAT==='android'?(v.android/Math.max(v.count,1)):(v.ios/Math.max(v.count,1));
+    const cnt=PLAT==='all'?v.count:PLAT==='android'?v.android:v.ios;
+    if(cnt<=0)continue;
+    const fv={
+      count:cnt,
+      pos:Math.round(v.pos*ratio),neg:Math.round(v.neg*ratio),neu:Math.round(v.neu*ratio),
+      ts:Math.round(v.ts*ratio),
+      android:PLAT==='ios'?0:v.android,ios:PLAT==='android'?0:v.ios
+    };
+    bd[d]=fv;
+    tot+=fv.count;pos+=fv.pos;neg+=fv.neg;neu+=fv.neu;
+    ac+=fv.android;ic+=fv.ios;
+    // Accumulate per-star counts
+    if(v.rat){v.rat.forEach((n,i)=>rat[i]+=Math.round(n*ratio));}
+  }
+  // Filter by_cat with platform-proportional approximation
+  const bc={};
+  for(const[cat,v]of Object.entries(raw.by_cat)){
+    let cv,cr,crn;
+    if(PLAT==='all'){cv=v.count;cr=v.android;crn=v.ios;}
+    else if(PLAT==='android'){cv=v.android;cr=v.android;crn=0;}
+    else{cv=v.ios;cr=0;crn=v.ios;}
+    if(cv<=0)continue;
+    const ratio=cv/Math.max(v.count,1);
+    bc[cat]={
+      count:cv,android:cr,ios:crn,
+      pos:Math.round(v.pos*ratio),neg:Math.round(v.neg*ratio),neu:Math.round(v.neu*ratio),
+      posRevs:v.posRevs||[],negRevs:v.negRevs||[]
+    };
+  }
+  // Compute rating distribution from per-day star counts
+  for(const v of Object.values(bd)){
+    if(v.rat){v.rat.forEach((c,i)=>rat[i]+=c);}
+  }
+  const avg=tot?(Object.values(bd).reduce((s,v)=>s+v.ts,0)/tot).toFixed(2):'0';
+  // Also compute filtered by_cat rat
+  const bcRat=[0,0,0,0,0];
+  Object.values(bc).forEach(v=>{if(v.rat)v.rat.forEach((n,i)=>bcRat[i]+=n);});
+  const platStats=(p)=>{
+    const ps=raw.plat[p];
+    return{n:PLAT==='all'||PLAT===p?ps.n:0,avg:ps.avg,pp:ps.pp,np:ps.np,rat:ps.rat};
+  };
+  return{tot,pos,neg,neu,ac,ic,avg,rat,bd,bc,
+    platAndroid:platStats('android'),platIOS:platStats('ios'),
+    catsSorted:Object.entries(bc).sort((a,b)=>b[1].count-a[1].count)};
+}
+
+let rt;
+function renderAll(from,to){
+  clearTimeout(rt);rt=setTimeout(()=>{
+    const aj=filterAgg('ajio',from,to),mn=filterAgg('myntra',from,to);
+    const totA=aj.tot+mn.tot,andTot=aj.ac+mn.ac,iosTot=aj.ic+mn.ic;
+    const days=new Set(Object.keys(aj.bd).concat(Object.keys(mn.bd))).size;
+    document.getElementById('dcnt').innerHTML='Showing <span>'+totA.toLocaleString()+'</span> reviews &middot; <span>'+andTot.toLocaleString()+'</span> Android &middot; <span>'+iosTot.toLocaleString()+'</span> iOS';
+    document.getElementById('m-tot').textContent=totA.toLocaleString();
+    document.getElementById('m-and').textContent=andTot.toLocaleString();
+    document.getElementById('m-ios').textContent=iosTot.toLocaleString();
+    document.getElementById('m-days').textContent=days;
+    const fmt=d=>new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+    document.getElementById('hsub').textContent='Android + iOS \u00b7 Smart Sentiment v2 \u00b7 India \u00b7 '+fmt(from)+' \u2013 '+fmt(to);
+    rKPI(aj,mn);rRat(aj,mn);rCC(aj,mn);rIG(aj,mn);rPlat(from,to);rTrend(aj,mn);rTables(aj,mn);rSent(aj,mn);rRevs(aj,mn);rDD(from,to);
+    setTimeout(()=>document.querySelectorAll('.sbrf[data-w]').forEach(e=>e.style.width=e.dataset.w+'%'),120);
+  },60);
+}
+
+function rKPI(aj,mn){
+  const p=(n,t)=>t?Math.round(n/t*100):0;
+  const sp=(a,i)=>'<div class="kps"><span class="kpa">&#9650; '+a.toLocaleString()+'</span><span class="kpi2">&#63743; '+i.toLocaleString()+'</span></div>';
+  document.getElementById('kg').innerHTML=
+    '<div class="kc ajio"><div class="kl">Ajio Avg Rating</div><div class="kv">'+aj.avg+'&#9733;</div>'+sp(aj.ac,aj.ic)+'</div>'+
+    '<div class="kc myntra"><div class="kl">Myntra Avg Rating</div><div class="kv">'+mn.avg+'&#9733;</div>'+sp(mn.ac,mn.ic)+'</div>'+
+    '<div class="kc ajio"><div class="kl">Ajio Positive</div><div class="kv">'+p(aj.pos,aj.tot)+'%</div><div class="ks">'+aj.pos.toLocaleString()+' reviews</div></div>'+
+    '<div class="kc myntra"><div class="kl">Myntra Positive</div><div class="kv">'+p(mn.pos,mn.tot)+'%</div><div class="ks">'+mn.pos.toLocaleString()+' reviews</div></div>'+
+    '<div class="kc ajio"><div class="kl">Ajio Negative</div><div class="kv">'+p(aj.neg,aj.tot)+'%</div><div class="ks">'+aj.neg.toLocaleString()+' reviews</div></div>'+
+    '<div class="kc myntra"><div class="kl">Myntra Negative</div><div class="kv">'+p(mn.neg,mn.tot)+'%</div><div class="ks">'+mn.neg.toLocaleString()+' reviews</div></div>';
+}
+
+function rRat(aj,mn){
+  const mk=(id,r,col)=>{dc(id);const c=document.getElementById(id);if(!c)return;
+    CI[id]=new Chart(c,{type:'bar',data:{labels:['1\u2605','2\u2605','3\u2605','4\u2605','5\u2605'],datasets:[{data:r,backgroundColor:['#EF444460','#F59E0B60','#FBBF2460','#22C55E40',col+'90'],borderColor:['#EF4444','#F59E0B','#FBBF24','#22C55E',col],borderWidth:1.5,borderRadius:4}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:gc}}}}});
+  };
+  mk('aR',aj.rat,'#FF3B58');mk('mR',mn.rat,'#9B5DE5');
+}
+
+function rCC(aj,mn){
+  const cats=['Overall Satisfaction','App Experience','Delivery & Logistics','Returns & Refunds','Customer Support','Order Management','Product Quality','Pricing & Offers','Payment & Checkout','Packaging'];
+  dc('cC');const c=document.getElementById('cC');if(!c)return;
+  CI['cC']=new Chart(c,{type:'bar',data:{labels:cats.map(c=>c.split(' ').slice(0,2).join(' ')),datasets:[
+    {label:'Ajio',data:cats.map(c=>aj.bc[c]?.count||0),backgroundColor:'#FF3B5870',borderColor:'#FF3B58',borderWidth:1.5,borderRadius:3},
+    {label:'Myntra',data:cats.map(c=>mn.bc[c]?.count||0),backgroundColor:'#9B5DE570',borderColor:'#9B5DE5',borderWidth:1.5,borderRadius:3}
+  ]},options:{plugins:{legend:{labels:{color:tc,boxWidth:12}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:gc}}}}});
+}
+
+function rPlat(from,to){
+  const brands=[{k:'ajio',col:'#FF3B58',pa:'aP',ps:'aPS'},{k:'myntra',col:'#9B5DE5',pa:'mP',ps:'mPS'}];
+  const rows=[];
+  for(const{k,col,pa,ps}of brands){
+    const raw=A[k];
+    const as=raw.plat.android,is2=raw.plat.ios;
+    dc(pa);const pc=document.getElementById(pa);
+    if(pc)CI[pa]=new Chart(pc,{type:'bar',data:{labels:['Android','iOS'],datasets:[{data:[as.avg,is2.avg],backgroundColor:['#3DDC8460','#007AFF60'],borderColor:['#3DDC84','#007AFF'],borderWidth:1.5,borderRadius:4}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:gc},min:0,max:5}}}});
+    dc(ps);const sc=document.getElementById(ps);
+    if(sc)CI[ps]=new Chart(sc,{type:'bar',data:{labels:['Android','iOS'],datasets:[
+      {label:'Positive',data:[as.pp,is2.pp],backgroundColor:'#22C55E80',borderColor:'#22C55E',borderWidth:1,borderRadius:3},
+      {label:'Negative',data:[as.np,is2.np],backgroundColor:'#EF444480',borderColor:'#EF4444',borderWidth:1,borderRadius:3}
+    ]},options:{plugins:{legend:{labels:{color:tc,boxWidth:10}}},scales:{x:{grid:{display:false}},y:{grid:{color:gc},max:100,ticks:{callback:v=>v+'%'}}}}});
+    rows.push(
+      '<tr><td style="color:'+col+';font-weight:600">'+k.toUpperCase()+'</td><td><span class="srcb srca">&#9650; Android</span></td><td>'+as.n.toLocaleString()+'</td><td>'+as.avg+'</td><td style="color:var(--pos)">'+as.pp+'%</td><td style="color:var(--neg)">'+as.np+'%</td></tr>',
+      '<tr><td></td><td><span class="srcb srci">&#63743; iOS</span></td><td>'+is2.n.toLocaleString()+'</td><td>'+is2.avg+'</td><td style="color:var(--pos)">'+is2.pp+'%</td><td style="color:var(--neg)">'+is2.np+'%</td></tr>'
+    );
+  }
+  const t=document.getElementById('pt');if(t)t.innerHTML=rows.join('');
+}
+
+function rTrend(aj,mn){
+  const days=[...new Set([...Object.keys(aj.bd),...Object.keys(mn.bd)])].sort();
+  if(!days.length)return;
+  dc('tV');const vc=document.getElementById('tV');
+  if(vc)CI['tV']=new Chart(vc,{type:'line',data:{labels:days,datasets:[
+    {label:'Ajio',data:days.map(d=>aj.bd[d]?.count||0),borderColor:'#FF3B58',backgroundColor:'#FF3B5820',fill:true,tension:0.4,pointRadius:2},
+    {label:'Myntra',data:days.map(d=>mn.bd[d]?.count||0),borderColor:'#9B5DE5',backgroundColor:'#9B5DE520',fill:true,tension:0.4,pointRadius:2}
+  ]},options:{plugins:{legend:{labels:{color:tc,boxWidth:12}}},scales:{x:{grid:{display:false},ticks:{color:tc,maxTicksLimit:12}},y:{grid:{color:gc},ticks:{color:tc}}}}});
+  dc('tR');const rc=document.getElementById('tR');
+  if(rc)CI['tR']=new Chart(rc,{type:'line',data:{labels:days,datasets:[
+    {label:'Ajio',data:days.map(d=>aj.bd[d]?+(aj.bd[d].ts/aj.bd[d].count).toFixed(2):null),borderColor:'#FF3B58',tension:0.4,pointRadius:2,spanGaps:true,fill:false},
+    {label:'Myntra',data:days.map(d=>mn.bd[d]?+(mn.bd[d].ts/mn.bd[d].count).toFixed(2):null),borderColor:'#9B5DE5',tension:0.4,pointRadius:2,spanGaps:true,fill:false}
+  ]},options:{plugins:{legend:{labels:{color:tc,boxWidth:12}}},scales:{x:{grid:{display:false},ticks:{color:tc,maxTicksLimit:12}},y:{grid:{color:gc},min:1,max:5,ticks:{color:tc}}}}});
+  dc('tS');const sc=document.getElementById('tS');
+  if(sc)CI['tS']=new Chart(sc,{type:'bar',data:{labels:days,datasets:[
+    {label:'Ajio +ve',data:days.map(d=>aj.bd[d]?.pos||0),backgroundColor:'#22C55E70',stack:'aj'},
+    {label:'Ajio -ve',data:days.map(d=>aj.bd[d]?.neg||0),backgroundColor:'#EF444470',stack:'aj'},
+    {label:'Myntra +ve',data:days.map(d=>mn.bd[d]?.pos||0),backgroundColor:'#9B5DE570',stack:'mn'},
+    {label:'Myntra -ve',data:days.map(d=>mn.bd[d]?.neg||0),backgroundColor:'#FF6B9D70',stack:'mn'}
+  ]},options:{plugins:{legend:{labels:{color:tc,boxWidth:10,font:{size:10}}}},scales:{x:{grid:{display:false},ticks:{color:tc,maxTicksLimit:12}},y:{grid:{color:gc},ticks:{color:tc}}}}});
+}
+
+function rTables(aj,mn){
+  const rows=(cs,tot,col)=>{
+    if(!cs.length)return'<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:30px">No data</td></tr>';
+    return cs.map(([cat,v])=>{
+      const pct=((v.count/tot)*100).toFixed(1),bw=Math.round((v.count/cs[0][1].count)*100);
+      const cTot=Math.max(v.count,1);
+      const posPct=((v.pos/cTot)*100).toFixed(1);
+      const negPct=((v.neg/cTot)*100).toFixed(1);
+      const dom=v.pos>=v.neg?'Positive':'Negative';
+      return'<tr>'+
+        '<td>'+cat+'</td>'+
+        '<td>'+v.count.toLocaleString()+'</td>'+
+        '<td><span class="srcb srca">'+v.android+'</span></td>'+
+        '<td><span class="srcb srci">'+v.ios+'</span></td>'+
+        '<td><span class="mbt"><span class="mbf" style="background:'+col+';width:'+bw+'%"></span></span>'+pct+'%</td>'+
+        '<td style="color:var(--pos);font-weight:500">'+v.pos+' <span style="font-size:10px;opacity:0.8">('+posPct+'%)</span></td>'+
+        '<td style="color:var(--neg);font-weight:500">'+v.neg+' <span style="font-size:10px;opacity:0.8">('+negPct+'%)</span></td>'+
+        '<td><span class="bdg '+(dom==='Positive'?'pos':'neg')+'">'+(dom==='Positive'?'&#9650;':'&#9660;')+' '+dom+'</span></td>'+
+        '</tr>';
+    }).join('');
+  };
+  document.getElementById('at').innerHTML=rows(aj.catsSorted,aj.tot,'#FF3B58');
+  document.getElementById('mt').innerHTML=rows(mn.catsSorted,mn.tot,'#9B5DE5');
+}
+
+function rSent(aj,mn){
+  // FIX: use actual pos/neg/neu counts, compute correct percentages
+  const pct=(n,t)=>t?(n/t*100).toFixed(1):'0';
+  const mkCard=(brand,d,col)=>'<div class="scard">'+
+    '<div class="sbrand" style="color:'+col+'">'+brand+'</div>'+
+    [['Positive',d.pos,'var(--pos)'],['Negative',d.neg,'var(--neg)'],['Neutral',d.neu,'var(--neu)']].map(([l,cnt,c])=>{
+      const p=pct(cnt,d.tot);
+      return'<div class="sbrg"><div class="sbrl"><span>'+l+'</span><span>'+p+'% ('+cnt.toLocaleString()+')</span></div>'+
+        '<div class="sbrt"><div class="sbrf" style="background:'+c+';width:0" data-w="'+p+'"></div></div></div>';
+    }).join('')+'</div>';
+  document.getElementById('sc').innerHTML=mkCard('AJIO',aj,'var(--ajio)')+mkCard('MYNTRA',mn,'var(--myntra)');
+  const sch=(id,cs)=>{dc(id);const c=document.getElementById(id);if(!c||!cs.length)return;
+    CI[id]=new Chart(c,{type:'bar',data:{labels:cs.map(([c])=>c.split(' ').slice(0,2).join(' ')),datasets:[
+      {label:'Positive',data:cs.map(([,v])=>v.pos),backgroundColor:'#22C55E80',borderColor:'#22C55E',borderWidth:1,borderRadius:2},
+      {label:'Negative',data:cs.map(([,v])=>v.neg),backgroundColor:'#EF444480',borderColor:'#EF4444',borderWidth:1,borderRadius:2},
+      {label:'Neutral',data:cs.map(([,v])=>v.neu),backgroundColor:'#F59E0B80',borderColor:'#F59E0B',borderWidth:1,borderRadius:2}
+    ]},options:{indexAxis:'y',plugins:{legend:{labels:{color:tc,boxWidth:10,font:{size:11}}}},scales:{x:{stacked:true,grid:{color:gc}},y:{stacked:true,grid:{display:false},ticks:{font:{size:10}}}}}});
+  };
+  sch('aS',aj.catsSorted);sch('mS',mn.catsSorted);
+}
+
+function rRevs(aj,mn){
+  const con=document.getElementById('rcon');
+  const CO=['Delivery & Logistics','Returns & Refunds','Order Management','Customer Support','App Experience','Product Quality','Pricing & Offers','Payment & Checkout','Packaging','Overall Satisfaction'];
+  const mkCard=(r,cls)=>{
+    const st='&#9733;'.repeat(r.s)+'&#9734;'.repeat(5-r.s);
+    const srcb=r.src==='ios'?'<span class="srcb srci">&#63743; iOS</span>':'<span class="srcb srca">&#9650; Android</span>';
+    return'<div class="rvc '+cls+'"><div class="rvct"><span style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">'+srcb+'</span><span class="rvcs">'+st+'</span></div><div class="rvcx">'+r.t+'</div><div class="rvcf"><span class="bdg '+cls+'">'+(cls==='pos'?'&#9650; Positive':'&#9660; Negative')+'</span><span class="rvcd">'+r.d+'</span></div></div>';
+  };
+  const bld=(brand,d)=>{
+    const cm=Object.fromEntries(d.catsSorted);
+    const secs=CO.map(cat=>{
+      const v=cm[cat];if(!v)return'';
+      const pr=v.posRevs||[],nr=v.negRevs||[];
+      if(!pr.length&&!nr.length)return'';
+      return'<div class="rcatsec"><div class="rcatlbl" onclick="tRC(this)">'+
+        '<span class="rcatarr">&#9658;</span>'+cat+
+        '<span class="rcatcnt">'+v.count.toLocaleString()+' reviews</span>'+
+        '<span class="rcatsm"><span class="rcatsp">+'+pr.length+'</span><span class="rcatsn">\u2212'+nr.length+'</span></span>'+
+        '</div><div class="rcatbody">'+
+          '<div class="rtcol">'+
+            '<div><div class="rcolhd rchpos">&#9650; Positive ('+pr.length+')</div>'+(pr.length?pr.map(r=>mkCard(r,'pos')).join(''):'<div style="color:var(--muted);font-size:12px;padding:10px 0">No positive reviews</div>')+'</div>'+
+            '<div><div class="rcolhd rchneg">&#9660; Negative ('+nr.length+')</div>'+(nr.length?nr.map(r=>mkCard(r,'neg')).join(''):'<div style="color:var(--muted);font-size:12px;padding:10px 0">No negative reviews</div>')+'</div>'+
+          '</div></div></div>';
+    }).join('');
+    return'<div class="rbsec"><div class="rbhdr '+brand+'">'+brand.toUpperCase()+' &middot; '+d.tot.toLocaleString()+' reviews</div>'+(d.tot?secs:'<div style="color:var(--muted);padding:20px">No reviews</div>')+'</div>';
+  };
+  con.innerHTML=bld('ajio',aj)+bld('myntra',mn);
+}
+window.tRC=el=>{
+  const b=el.nextElementSibling,a=el.querySelector('.rcatarr'),o=b.classList.contains('open');
+  b.classList.toggle('open',!o);a.classList.toggle('open',!o);a.innerHTML=o?'&#9658;':'&#9660;';
+};
+
+function rDD(from,to){
+  const con=document.getElementById('ddc');
+  let html='';
+  for(const brand of['ajio','myntra']){
+    const col=brand==='ajio'?'var(--ajio)':'var(--myntra)';
+    html+='<div class="ddbrand"><div class="ddbhdr '+brand+'">'+brand.toUpperCase()+' &mdash; Negative Deep Dive</div>';
+    const bsd=SD[brand]||{};
+    for(const[mc,subcats]of Object.entries(bsd)){
+      const fsc={};let mTot=0;
+      for(const[sc,revs]of Object.entries(subcats)){
+        const fr=revs.filter(r=>r.d>=from&&r.d<=to&&(PLAT==='all'||(PLAT==='android'&&r.src==='android')||(PLAT==='ios'&&r.src==='ios')));
+        if(fr.length){fsc[sc]=fr;mTot+=fr.length;}
+      }
+      if(!mTot)continue;
+      const mx=Math.max(...Object.values(fsc).map(v=>v.length));
+      const cid='dd'+brand+mc.replace(/\W/g,'');
+      html+='<div class="ddmc"><div class="ddmhdr" onclick="tDD(\''+cid+'\')">'+
+        '<div class="ddmtitle" style="color:'+col+'">'+mc+'</div>'+
+        '<div class="ddmeta"><span class="ddtot">'+mTot+' negative</span><span class="ddarr" id="arr'+cid+'">&#9658;</span></div>'+
+        '</div><div class="ddbody" id="'+cid+'">';
+      for(const[sc,revs]of Object.entries(fsc).sort((a,b)=>b[1].length-a[1].length)){
+        const bw=Math.round((revs.length/mx)*100);
+        const spid='sp'+cid+sc.replace(/\W/g,'');
+        const samps=revs.slice(0,3).map(r=>{
+          const srcb=r.src==='ios'?'<span class="srcb srci">&#63743;</span>':'<span class="srcb srca">&#9650;</span>';
+          const st='&#9733;'.repeat(r.s)+'&#9734;'.repeat(5-r.s);
+          return'<div class="ddsc"><div class="ddstxt">'+r.t+'</div><div class="ddsmeta">'+srcb+'<span class="rvcs" style="font-size:10px">'+st+'</span><span class="ddsdate">'+r.d+'</span></div></div>';
+        }).join('');
+        html+='<div class="ddrow"><div class="ddscname">'+sc+'</div>'+
+          '<div class="ddbwrap"><div class="ddbtrack"><div class="ddbfill" data-w="'+bw+'"></div></div><span class="ddcnt">'+revs.length+'</span></div>'+
+          '<button class="ddsbtn" onclick="tSP(\''+spid+'\')">Samples</button></div>'+
+          '<div class="ddsp" id="'+spid+'">'+samps+'</div>';
+      }
+      html+='</div></div>';
+    }
+    html+='</div>';
+  }
+  con.innerHTML=html||'<div style="text-align:center;padding:40px;color:var(--muted)">No negative reviews in selected range</div>';
+  setTimeout(()=>document.querySelectorAll('.ddbfill[data-w]').forEach(e=>e.style.width=e.dataset.w+'%'),100);
+}
+window.tDD=id=>{
+  const b=document.getElementById(id),arr=document.getElementById('arr'+id);
+  const o=b.classList.contains('open');
+  b.classList.toggle('open',!o);if(arr){arr.classList.toggle('open',!o);arr.innerHTML=o?'&#9658;':'&#9660;';}
+  if(!o)setTimeout(()=>document.querySelectorAll('#'+id+' .ddbfill[data-w]').forEach(e=>e.style.width=e.dataset.w+'%'),50);
+};
+window.tSP=id=>{document.getElementById(id)?.classList.toggle('open');};
+function rIG(aj,mn){
+  const p=(n,t)=>t?Math.round(n/t*100):0;
+  const bc=aj.bc;const mc=mn.bc;
+  document.getElementById('ig').innerHTML=
+    '<div class="ic"><h4>&#128308; Ajio Pain Points</h4>'+
+    '<div class="ii"><div class="dot dr"></div>Delivery: '+p(bc['Delivery & Logistics']?.neg||0,bc['Delivery & Logistics']?.count||1)+'% negative &mdash; '+(bc['Delivery & Logistics']?.neg||0).toLocaleString()+' complaints</div>'+
+    '<div class="ii"><div class="dot dr"></div>Returns & Refunds: '+p(bc['Returns & Refunds']?.neg||0,bc['Returns & Refunds']?.count||1)+'% negative</div>'+
+    '<div class="ii"><div class="dot dr"></div>Customer Support: '+(bc['Customer Support']?.neg||0).toLocaleString()+' negative reviews</div>'+
+    '<div class="ii"><div class="dot dy"></div>Order Management: '+(bc['Order Management']?.neg||0).toLocaleString()+' wrong/fake product complaints</div></div>'+
+    '<div class="ic"><h4>&#128994; Myntra Strengths</h4>'+
+    '<div class="ii"><div class="dot dg"></div>Delivery: '+(mc['Delivery & Logistics']?.pos||0).toLocaleString()+' positive &mdash; fast delivery praised</div>'+
+    '<div class="ii"><div class="dot dg"></div>Product Quality: '+(mc['Product Quality']?.pos||0).toLocaleString()+' positive &mdash; authentic & reliable</div>'+
+    '<div class="ii"><div class="dot dg"></div>App Experience: '+(mc['App Experience']?.pos||0).toLocaleString()+' positive across platforms</div>'+
+    '<div class="ii"><div class="dot dr"></div>Returns & Refunds: '+(mc['Returns & Refunds']?.neg||0).toLocaleString()+' negative &mdash; primary pain point</div></div>';
+}
+window.showTab=(id,btn)=>{
+  document.querySelectorAll('.tpanel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');btn.classList.add('active');
+  if(id==='sentiment')setTimeout(()=>document.querySelectorAll('.sbrf[data-w]').forEach(e=>e.style.width=e.dataset.w+'%'),100);
+  if(id==='deepdive'){const from=document.getElementById('df').value,to=document.getElementById('dt').value;rDD(from,to);}
+};
+window.refreshData=()=>{const i=document.getElementById('ri');i.classList.add('spin');setTimeout(()=>{applyFilter(false);i.classList.remove('spin');},900);};
+window.addEventListener('DOMContentLoaded',()=>{
+  const{min,max}=allDR();
+  document.getElementById('df').value=min;document.getElementById('dt').value=max;
+  document.getElementById('qAll').classList.add('active');
+  applyFilter(false);
+});
+</script>
+</body>
+</html>
